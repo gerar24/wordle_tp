@@ -30,6 +30,16 @@
   (major1) == 0 && (major2) <  2 || \
   (major1) == 0 && (major2) == 2 && (minor) <= 1)
 #endif /* MIN_VERSION_tinyapp */
+/* package yaml-0.11.11.2 */
+#ifndef VERSION_yaml
+#define VERSION_yaml "0.11.11.2"
+#endif /* VERSION_yaml */
+#ifndef MIN_VERSION_yaml
+#define MIN_VERSION_yaml(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  11 || \
+  (major1) == 0 && (major2) == 11 && (minor) <= 11)
+#endif /* MIN_VERSION_yaml */
 
 /* tool gcc-13.1.6 */
 #ifndef TOOL_VERSION_gcc
