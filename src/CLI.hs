@@ -10,6 +10,7 @@ import Data.Char (toUpper, toLower)
 import Data.Yaml (decodeFileEither)
 import Data.Maybe (isJust)
 import qualified Data.Set as Set
+import Game (Juego(palSecreta), intDisponibles)
 
 -- Main function
 main :: IO ()
@@ -36,6 +37,10 @@ main = do
                     rWord <- selectRandomWord diccInicial
                     let randomWord = map toLower rWord
                     runInteractive (wordle (Estado {juego = nuevo randomWord 5, intentoActual = [], alertas = "", diccionario=diccInicial, descartadas=Set.empty}))
+ -- SI NOTHING DAILY
+ -- SI DAILY DAILY
+ -- SI DAILY + FECHA, DAILY FECHA
+ -- SI PALABRA PALABRA
 
     pure()
 
@@ -87,6 +92,8 @@ wordle estadoInicial =
             <> replicate (4 * length (palSecreta (juego s))) '-'
             <> "\n\n"
             <> "Letras ya descartadas: " ++ showYaDescartadas (descartadas s)
+            <> "\n"
+            <> "Intentos restantes: " ++ show (intDisponibles(juego s))
             <> "\n\n"
             <> alertas s
             <> "\n\n\n\n",
@@ -98,13 +105,13 @@ wordle estadoInicial =
                         then
                             (cleanState s, Exit)
                     else
-                        (s {alertas="YOU WON ;) Press Esc to Exit"}, Continue)
+                        (s {alertas="Ganaste crack mundial ;)\nApretá 'Esc' para Salir"}, Continue)
                 Perdio -> do
                     if key == KEsc
                         then
                             (cleanState s, Exit)
                         else
-                            (s {alertas="YOU LOST :/ Press Esc to Exit"}, Continue)
+                            (s {alertas="Perdiste, lo siento mucho :/\nLa palabra era: " ++ map toUpper (palSecreta(juego s)) ++ "\nApretá 'Esc' para Salir"}, Continue)
                 Continua -> case key of
                                 KEsc -> (cleanState s, Exit)
                                 KEnter -> 
@@ -119,7 +126,7 @@ wordle estadoInicial =
                                                             in (cleanState estadoActualizado, Continue)
                                                         Nothing -> (cleanState s, Continue)
                                             else
-                                                (s {alertas = "Esa palabra no existe."}, Continue)
+                                                (s {alertas = "Esa palabra no es válida."}, Continue)
                                     else
                                         (cleanState s, Continue)
 
