@@ -27,16 +27,16 @@ main = do
                         then
                             do
                                 putStrLn "Let's start the game with selected word."
-                                runInteractive (wordle (Estado {juego = nuevo palabra 5, intentoActual = [], alertas = "", diccionario=diccInicial, descartadas=Set.empty}))
+                                runInteractive (wordle (Estado {juego = nuevo palabra 5, intentoActual = [], alertas = [], diccionario=diccInicial, descartadas=Set.empty}))
                         else
                             do
                                 putStrLn "The word is not in the dictionary. Please try again."
-                                --runInteractive' (wordle (Estado {juego = nuevo "hello" 5, intentoActual = [], alertas = ""}))
+                                --runInteractive' (wordle (Estado {juego = nuevo "hello" 5, intentoActual = [], alertas = []}))
                 Nothing -> do
                     putStrLn "Let's start the game with random word."
                     rWord <- selectRandomWord diccInicial
                     let randomWord = map toLower rWord
-                    runInteractive (wordle (Estado {juego = nuevo randomWord 5, intentoActual = [], alertas = "", diccionario=diccInicial, descartadas=Set.empty}))
+                    runInteractive (wordle (Estado {juego = nuevo randomWord 5, intentoActual = [], alertas = [], diccionario=diccInicial, descartadas=Set.empty}))
  -- SI NOTHING DAILY
  -- SI DAILY DAILY
  -- SI DAILY + FECHA, DAILY FECHA
@@ -72,13 +72,16 @@ newtype Diccionario = Diccionario {
 data Estado = Estado {
     juego :: Juego,
     intentoActual :: String,
-    alertas :: String,
+    alertas :: [String],
     diccionario :: Diccionario,
     descartadas :: Set.Set Char
 }
 
 cleanState :: Estado -> Estado
-cleanState estado = estado { alertas = "" }
+cleanState estado = estado {intentoActual=[]}
+
+cleanAlertas :: Estado -> Estado
+cleanAlertas estado = estado {alertas=[]}
 
 wordle :: Estado -> Sandbox Estado
 wordle estadoInicial =
@@ -95,7 +98,7 @@ wordle estadoInicial =
             <> "\n"
             <> "Intentos restantes: " ++ show (intDisponibles(juego s))
             <> "\n\n"
-            <> alertas s
+            <> showAlertas (alertas s)
             <> "\n\n\n\n",
             
         update = \(Key key _) s ->
@@ -105,13 +108,13 @@ wordle estadoInicial =
                         then
                             (cleanState s, Exit)
                     else
-                        (s {alertas="Ganaste crack mundial ;)\nApretá 'Esc' para Salir"}, Continue)
+                        (s {alertas= (alertas s) ++ ["Ganaste crack mundial ;)\nApretá 'Esc' para Salir"]}, Continue)
                 Perdio -> do
                     if key == KEsc
                         then
                             (cleanState s, Exit)
                         else
-                            (s {alertas="Perdiste, lo siento mucho :/\nLa palabra era: " ++ map toUpper (palSecreta(juego s)) ++ "\nApretá 'Esc' para Salir"}, Continue)
+                            (s {alertas= (alertas s) ++ ["Perdiste, lo siento mucho :/\nLa palabra era: " ++ map toUpper (palSecreta(juego s)) ++ "\nApretá 'Esc' para Salir"]}, Continue)
                 Continua -> case key of
                                 KEsc -> (cleanState s, Exit)
                                 KEnter -> 
@@ -123,28 +126,36 @@ wordle estadoInicial =
                                                         Just nuevoJuego -> 
                                                             let estadoActualizado = s { juego = nuevoJuego, 
                                                                                         descartadas = Set.union (descartadas s) (yaDescartadas (last (intentos nuevoJuego)))}
-                                                            in (cleanState estadoActualizado, Continue)
-                                                        Nothing -> (cleanState s, Continue)
-                                            else
-                                                (s {alertas = "Esa palabra no es válida."}, Continue)
-                                    else
-                                        (cleanState s, Continue)
+                                                            in (cleanAlertas (cleanState estadoActualizado), Continue)
+                                                        Nothing -> (cleanAlertas (cleanState s), Continue)
+                                                else
+                                                    (s {alertas = (alertas s) ++ ["Esa palabra no es válida."]}, Continue)
+                                        else
+                                            (s {alertas = (alertas s) ++ ["Longitud inválida."]}, Continue)--(cleanState s, Continue)
 
                                 KBS -> if length (intentoActual s) > 0
                                             then
                                                 let estadoActualizado = s {intentoActual = init (intentoActual s)}
-                                                in (estadoActualizado, Continue)
-                                        else
-                                            (cleanState s,Continue)
+                                                in (cleanAlertas estadoActualizado, Continue)
+                                            else
+                                                (s,Continue)
 
                                 KChar pressed -> if longPalSecreta (juego s)  > length (intentoActual s)
-                                                        then
-                                                            let estadoActualizado = s {intentoActual = intentoActual s ++ [toLower pressed]}
-                                                            in (cleanState estadoActualizado, Continue)
-                                                else
-                                                    (cleanState s, Continue)
+                                                    then
+                                                        if Set.member pressed (descartadas s)
+                                                            then
+                                                                let estadoActualizado = s {intentoActual = intentoActual s ++ [toLower pressed], alertas = (alertas s) ++ ["Atención! La letra " ++ [toUpper pressed] ++ " ya la descartaste antes..."]}
+                                                                in (estadoActualizado, Continue)
+                                                            else
+                                                                let estadoActualizado = s {intentoActual = intentoActual s ++ [toLower pressed]}
+                                                                in (estadoActualizado, Continue)
+                                                    else
+                                                        (s, Continue)
                                 
     }
+
+showAlertas :: [String] -> String
+showAlertas alertas = concatMap (++ "\n") alertas
 
 showYaDescartadas :: Set.Set Char -> String
 showYaDescartadas descartadas =
