@@ -4,6 +4,7 @@ import Core
 import Game
 import System.Environment (getArgs)
 import System.IO.Error
+import System.Random.Stateful (uniformRM, globalStdGen)
 import TinyApp.Interactive
 import Data.Char (toUpper, toLower)
 import Data.Yaml (decodeFileEither)
@@ -23,14 +24,27 @@ main = do
                     if map toUpper palabra `elem` (vocabulario diccInicial)
                         then
                             do
-                                putStrLn "Let's start the game."
+                                putStrLn "Let's start the game with selected word."
                                 runInteractive (wordle (Estado {juego = nuevo palabra 5, intentoActual = [], alertas = "", diccionario=diccInicial}))
                         else
                             do
                                 putStrLn "The word is not in the dictionary. Please try again."
                                 --runInteractive' (wordle (Estado {juego = nuevo "hello" 5, intentoActual = [], alertas = ""}))
-                --Nothing -> putStrLn "No word was chosen."
+                Nothing -> do
+                    putStrLn "Let's start the game with random word."
+                    rWord <- selectRandomWord diccInicial
+                    let randomWord = map toLower rWord
+                    runInteractive (wordle (Estado {juego = nuevo randomWord 5, intentoActual = [], alertas = "", diccionario=diccInicial}))
+
     pure()
+
+selectRandomWord :: Diccionario -> IO String
+selectRandomWord dicc = do
+    let listaPalabras = vocabulario dicc
+    indice <- uniformRM (0, length listaPalabras - 1) globalStdGen
+    return (listaPalabras !! indice)
+
+    
 
 loadDictionary :: FilePath -> IO (Maybe [String])
 loadDictionary path = do
