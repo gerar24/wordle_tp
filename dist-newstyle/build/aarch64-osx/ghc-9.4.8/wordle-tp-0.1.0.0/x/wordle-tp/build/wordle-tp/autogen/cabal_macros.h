@@ -20,16 +20,6 @@
   (major1) == 4 && (major2) <  17 || \
   (major1) == 4 && (major2) == 17 && (minor) <= 2)
 #endif /* MIN_VERSION_base */
-/* package tinyapp-0.1.0.2 */
-#ifndef VERSION_tinyapp
-#define VERSION_tinyapp "0.1.0.2"
-#endif /* VERSION_tinyapp */
-#ifndef MIN_VERSION_tinyapp
-#define MIN_VERSION_tinyapp(major1,major2,minor) (\
-  (major1) <  0 || \
-  (major1) == 0 && (major2) <  1 || \
-  (major1) == 0 && (major2) == 1 && (minor) <= 0)
-#endif /* MIN_VERSION_tinyapp */
 /* package wordle-tp-0.1.0.0 */
 #ifndef VERSION_wordle_tp
 #define VERSION_wordle_tp "0.1.0.0"

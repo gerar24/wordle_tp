@@ -67,7 +67,7 @@ library
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.17.2.1 && <4.18, tinyapp
+    build-depends:    base ^>=4.17.2.1 && <4.18, tinyapp ==0.2.1.0
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -91,7 +91,6 @@ executable wordle-tp
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.17.2.1,
-        tinyapp,
         wordle-tp
 
     -- Directories containing source files.
@@ -127,5 +126,4 @@ test-suite wordle-tp-test
     -- Test dependencies.
     build-depends:
         base ^>=4.17.2.1,
-        tinyapp,
         wordle-tp
