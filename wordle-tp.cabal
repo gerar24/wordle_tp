@@ -58,7 +58,7 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:  MyLib, CLI
+    exposed-modules:  MyLib, CLI, Core
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -127,4 +127,5 @@ test-suite wordle-tp-test
     -- Test dependencies.
     build-depends:
         base ^>=4.17.2.1,
+        tinyapp,
         wordle-tp
