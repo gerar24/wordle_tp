@@ -9,6 +9,7 @@ import TinyApp.Interactive
 import Data.Char (toUpper, toLower)
 import Data.Yaml (decodeFileEither)
 import Data.Maybe (isJust)
+import qualified Data.Set as Set
 
 -- Main function
 main :: IO ()
@@ -25,7 +26,7 @@ main = do
                         then
                             do
                                 putStrLn "Let's start the game with selected word."
-                                runInteractive (wordle (Estado {juego = nuevo palabra 5, intentoActual = [], alertas = "", diccionario=diccInicial}))
+                                runInteractive (wordle (Estado {juego = nuevo palabra 5, intentoActual = [], alertas = "", diccionario=diccInicial, descartadas=Set.empty}))
                         else
                             do
                                 putStrLn "The word is not in the dictionary. Please try again."
@@ -34,7 +35,7 @@ main = do
                     putStrLn "Let's start the game with random word."
                     rWord <- selectRandomWord diccInicial
                     let randomWord = map toLower rWord
-                    runInteractive (wordle (Estado {juego = nuevo randomWord 5, intentoActual = [], alertas = "", diccionario=diccInicial}))
+                    runInteractive (wordle (Estado {juego = nuevo randomWord 5, intentoActual = [], alertas = "", diccionario=diccInicial, descartadas=Set.empty}))
 
     pure()
 
@@ -67,7 +68,8 @@ data Estado = Estado {
     juego :: Juego,
     intentoActual :: String,
     alertas :: String,
-    diccionario :: Diccionario
+    diccionario :: Diccionario,
+    descartadas :: Set.Set Char
 }
 
 cleanState :: Estado -> Estado
@@ -84,7 +86,11 @@ wordle estadoInicial =
             <> showIntentoActual (intentoActual s)
             <> replicate (4 * length (palSecreta (juego s))) '-'
             <> "\n\n"
-            <> alertas s,
+            <> "Letras ya descartadas: " ++ showYaDescartadas (descartadas s)
+            <> "\n\n"
+            <> alertas s
+            <> "\n\n\n\n",
+            
         update = \(Key key _) s ->
             case termino (juego s) of
                 Gano -> do
@@ -108,9 +114,10 @@ wordle estadoInicial =
                                                 then
                                                     case enviarIntento (intentoActual s) (juego s) of
                                                         Just nuevoJuego -> 
-                                                            let estadoActualizado = s { juego = nuevoJuego }
-                                                            in (estadoActualizado, Continue)
-                                                        Nothing -> (s, Continue)
+                                                            let estadoActualizado = s { juego = nuevoJuego, 
+                                                                                        descartadas = Set.union (descartadas s) (yaDescartadas (last (intentos nuevoJuego)))}
+                                                            in (cleanState estadoActualizado, Continue)
+                                                        Nothing -> (cleanState s, Continue)
                                             else
                                                 (s {alertas = "Esa palabra no existe."}, Continue)
                                     else
@@ -131,6 +138,18 @@ wordle estadoInicial =
                                                     (cleanState s, Continue)
                                 
     }
+
+showYaDescartadas :: Set.Set Char -> String
+showYaDescartadas descartadas =
+    let lista = Set.toList descartadas
+    in unwords (map (\c-> [toUpper c]) lista)
+
+
+yaDescartadas :: [(Char, Match)] -> Set.Set Char
+yaDescartadas [] = Set.empty
+yaDescartadas ((char , match):xs)
+    | match == NoPertenece = Set.insert char (yaDescartadas xs)
+    | otherwise = yaDescartadas xs
 
 showJuego :: Juego -> String
 showJuego (Juego psec _ ints) =
