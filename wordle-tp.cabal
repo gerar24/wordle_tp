@@ -58,7 +58,7 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:  MyLib, CLI, Core, Game
+    exposed-modules:  CLI, Core, Game
 
     -- Modules included in this library but not exported.
     -- other-modules:
