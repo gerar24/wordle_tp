@@ -1,6 +1,0 @@
-For test execution via terminal please use:
-cabal test --test-show-details=always
-If all tests are correct you can see the printed output instead of going into logs... Mejor!
-
-For running code via console with cabal:
-cabal run wordle-tp -- --palabra (insert palabra 5 letras)
